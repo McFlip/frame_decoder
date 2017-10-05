@@ -1,0 +1,5 @@
+Type './prog1_linprog.x' to run the program. The program reads a small 
+dump file (< 250,000 bytes) named 'output' in the same directory, 
+and produces the 'decoded_output' that contains all user data in valid 
+frames in order. It also prints a report about whether frames are valid or 
+invalid to the standard output. 
