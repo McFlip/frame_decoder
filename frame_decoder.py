@@ -10,12 +10,15 @@ import binascii
 # Function definitions
 def decode(frame, num, msg):
   if len(frame) <3:
-    print "frame ", num, ", size ", len(payload), ": invalid"
+    print "frame ", num, ", size ", len(payload), ": invalid  **frame too small***"
   else:
     checksum = frame[-2:]
     print "checkbits: ", binascii.hexlify(checksum)
+    print "type of checkbits: ", type(binascii.hexlify(checksum))
     payload = frame[0:-2]
-    if validate(payload, Bits(bytes=checksum).bin[2:]):
+    #if validate(payload, Bits(bytes=checksum).bin[2:]):
+    #if validate(payload, ''.join([bin(c)[2:] for c in checksum])):
+    if validate(payload, binascii.hexlify(checksum)):
       msg.append(str(payload))
       print "frame ", num, ", size ", len(payload), ": valid"
     else:
@@ -49,16 +52,24 @@ def scramble(ordered):
   return sbits
 
 def calcCheckSum(input_bitstring, checksum):
-	len_input = len(input_bitstring)
-	input_padded_array = list(input_bitstring + checksum.zfill(16))
-	while '1' in input_padded_array[:len_input]:
-		cur_shift = input_padded_array.index('1')
-		for i in range(len(polynomial_bitstring)):
-			if polynomial_bitstring[i] == input_padded_array[cur_shift + i]:
-				input_padded_array[cur_shift + i] = '0'
-			else:
-				input_padded_array[cur_shift + i] = '1'
-	return int(''.join(input_padded_array)[len_input:], 2)
+  print "***CHECKSUM FUNCTION"
+  print "input_bitstring: ", input_bitstring
+  print "checksum: ", "0x%x" % (int(checksum, 16))
+  print "checksum: ", "{0:b}".format(int(checksum, 16))
+  checksum = "{0:b}".format(int(checksum, 16))
+  len_input = len(input_bitstring)
+  input_padded_array = list(input_bitstring + checksum.zfill(16))
+  print "input_padded_array: ", input_padded_array
+  while '1' in input_padded_array[:len_input]:
+    cur_shift = input_padded_array.index('1')
+    for i in range(len(polynomial_bitstring)):
+      if polynomial_bitstring[i] == input_padded_array[cur_shift + i]:
+        input_padded_array[cur_shift + i] = '0'
+      else:
+        input_padded_array[cur_shift + i] = '1'
+  result = ''.join(input_padded_array)[len_input:]
+  print "crc result: ", result
+  return int(result, 2)
 
 # set up arguments
 parser = argparse.ArgumentParser(prog='frame_decoder', description='Parses a dump file and extracts the frames.')
@@ -67,7 +78,6 @@ parser.add_argument("-o","--outfile", help="decoded file", default=os.path.join(
 args = parser.parse_args()
 
 # check arguments
-#infile
 infile = os.path.expanduser(args.infile)
 if not os.path.exists(infile):
   parser.error('The encoded file does not exist!')
@@ -77,7 +87,6 @@ if not os.access(infile, os.R_OK):
   parser.error('The encoded file is not readable!')
 
 #outDir
-#outfile
 outfile = os.path.basename(os.path.expanduser(args.outfile))
 outDir = os.path.dirname(os.path.expanduser(args.outfile))
 if not os.path.exists(outDir):
