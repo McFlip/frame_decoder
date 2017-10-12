@@ -5,12 +5,14 @@ Correct frames are decoded from the byte-stuffed form and written to a file.
 Frame number, data size (in bytes), and whether the frame is valid or invalid is reported to stdout.
 
 Usage:
-./frame_decoder.x dumpFile decodedFile
+chmod ugo+x frame_decoder
+./frame_decoder dumpFile decodedFile
+or
+python frame_decoder
+
+Arguments:
 dumpFile - A dumpfile of raw bytes recieved over the link.
 decodedFile - The final output in plain text.
 
-To compile from source:
-Simply run make from within the directory.
-
-To uninstall:
-Run make clean.
+Dependencies: bitstrings
+install with sudo -H pip install bitstrings

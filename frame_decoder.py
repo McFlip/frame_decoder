@@ -9,12 +9,15 @@ import binascii
 
 # Function definitions
 def decode(frame, num, msg):
+  # should be at least one data byte + 2 check bytes
   if len(frame) <3:
     print "frame ", num, ", size ", len(frame), ": invalid  **frame too small***"
   else:
+    #separate data and check bytes
     checksum = frame[-2:]
     payload = frame[0:-2]
     if validate(payload, binascii.hexlify(checksum)):
+      #add it to the output
       msg.append(str(payload))
       print "frame ", num, ", size ", len(frame), ": valid"
     else:
@@ -22,14 +25,17 @@ def decode(frame, num, msg):
     del frame[:]
 
 def validate(p, cs):
+  # rearrange the bits
   twobit = scramble(p)
-  if calcCheckSum(twobit.bin, cs) == 0:
+  # if the remainder is 0, then it's valid
+  if checkCheckSum(twobit.bin, cs) == 0:
     return True
   else:
     return False
 
 def scramble(ordered):
   sbits = BitArray()
+  # for each byte, transpose the bits
   for byte in ordered:
     b = Bits(uint=byte, length=8)
     sbits.append(BitArray(bool=b[0]))
@@ -42,16 +48,20 @@ def scramble(ordered):
     sbits.append(BitArray(bool=b[7]))
   return sbits
 
-def calcCheckSum(input_bitstring, checksum):
+def checkCheckSum(input_bitstring, checksum):
+  # NOTE this function takes a long time to execute for large frames
   checksum = "{0:b}".format(int(checksum, 16))
   len_input = len(input_bitstring)
+  # concat the scrambled bits and CRC
   concat_bits = list(input_bitstring + checksum.zfill(16))
   # TESTING j = 0
   while '1' in concat_bits[:len_input]:
+    # shift over to the next '1'
     offset = concat_bits.index('1')
     # TESTING += 1
     # TESTING print j
     for i in range(len(generator)):
+      # do bitwise xor
       if generator[i] == concat_bits[offset + i]:
         concat_bits[offset + i] = '0'
       else:
